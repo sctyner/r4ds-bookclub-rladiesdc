@@ -1,0 +1,21 @@
+---
+title: "R-Ladies DC *R for Data Science* book club"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+The R-Ladies DC *R for Data Science* book club is an ongoing book club, which will run from July 15 - Octoberober 28, 2021. There will be a total of 8 meetings: 
+
+```{r}
+library(tidyverse)
+meetings <- tibble(number = 1:8, 
+                   date = c("July 15", "July 29", "August 12", "August 26", "September 9", "September 23", "October 14", "October 28"), 
+                   topic = c("Introductions to one another and to R & RStudio", "Data Visualization & Tibbles", "Data Transformation & Exploratory Data Analysis", "Data Importing, Tidying, and Joining", "Dealing with Special Data Types", "Programming", "Model", "Communicate"))
+meetings %>% 
+  mutate(date = paste0(date, ", 2021")) %>% 
+  knitr::kable(col.names = c("Meeting #", "Date", "Topic"))
+```
+
