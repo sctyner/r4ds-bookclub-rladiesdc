@@ -19,3 +19,4 @@ meetings %>%
   knitr::kable(col.names = c("Meeting #", "Date", "Topic"))
 ```
 
+Please consider supporting the organizers [here](https://ko-fi.com/sctyner).

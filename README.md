@@ -15,3 +15,6 @@ total of 8 meetings:
 |          6 | September 23, 2021 | Programming                                     |
 |          7 | October 14, 2021   | Model                                           |
 |          8 | October 28, 2021   | Communicate                                     |
+
+Please consider supporting the organizers
+[here](https://ko-fi.com/sctyner).
