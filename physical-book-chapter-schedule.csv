@@ -1,0 +1,21 @@
+Physical book chapters,Pages,Meeting
+Preface,ix - xxiv,1
+Ch. 2: Workflow Basics,37-42,1
+Ch. 4: Workflow Scripts,77-79,1
+Ch. 6: Workflow Projects,111-116,1
+Ch. 1: Data Visualization with ggplot2,1-35,2
+Ch. 7: Tibbles,119-124,2
+Ch. 14: Pipes,261-268,3
+Ch. 3: Data Transformation,43-76,3
+Ch. 5: Exploratory Data Analysis,81-110,3
+Ch. 8: Data Import,125-146,4
+Ch. 9: Tidy Data,147-170,4
+Ch. 10: Relational Data,171-194,4
+Ch. 11: Strings,195-222,5
+Ch. 12: Factors,223-236,5
+Ch 13: Dates and times,237-256,5
+Ch. 15: Functions,269-290,6
+Ch. 16: Vectors,291-312,6
+Ch. 17: Iteration,313-339,6
+All of Part IV,341-419,7
+All of Part V,421-481,8

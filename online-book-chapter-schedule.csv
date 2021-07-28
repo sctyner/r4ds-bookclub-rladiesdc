@@ -1,0 +1,32 @@
+Chapter,Link,Meeting
+Welcome,https://r4ds.had.co.nz/index.html,1
+Ch 1: Introduction,https://r4ds.had.co.nz/introduction.html,1
+Ch. 4: Workflow: basics,https://r4ds.had.co.nz/workflow-basics.html,1
+Ch. 6: Workflow: scripts,https://r4ds.had.co.nz/workflow-scripts.html,1
+Ch. 8: Workflow: projects,https://r4ds.had.co.nz/workflow-projects.html,1
+Ch. 2: Introduction (Explore),https://r4ds.had.co.nz/explore-intro.html,2
+Ch. 3: Data visualization,https://r4ds.had.co.nz/data-visualisation.html,2
+Ch. 10: Tibbles,https://r4ds.had.co.nz/tibbles.html,2
+Ch. 18: Pipes,https://r4ds.had.co.nz/pipes.html,3
+Ch. 5: Data Transformation,https://r4ds.had.co.nz/transform.html,3
+Ch. 7: Exploratory Data Analysis,https://r4ds.had.co.nz/exploratory-data-analysis.html,3
+Ch. 9: Introduction (Wrangle),https://r4ds.had.co.nz/wrangle-intro.html,4
+Ch. 11: Data Import,https://r4ds.had.co.nz/data-import.html,4
+Ch. 12: Tidy Data,https://r4ds.had.co.nz/tidy-data.html,4
+Ch. 13: Relational Data,https://r4ds.had.co.nz/relational-data.html,4
+Ch. 14: Strings,https://r4ds.had.co.nz/strings.html,5
+Ch. 15: Factors,https://r4ds.had.co.nz/factors.html,5
+Ch 16: Dates and times,https://r4ds.had.co.nz/dates-and-times.html,5
+Ch. 17: Introduction (Programming),https://r4ds.had.co.nz/program-intro.html,6
+Ch. 19: Functions,https://r4ds.had.co.nz/functions.html,6
+Ch. 20: Vectors,https://r4ds.had.co.nz/vectors.html,6
+Ch. 21: Iteration,https://r4ds.had.co.nz/iteration.html,6
+Ch. 22: Introduction,https://r4ds.had.co.nz/model-intro.html,7
+Ch. 23: Model basics,https://r4ds.had.co.nz/model-basics.html,7
+Ch. 24: Model building,https://r4ds.had.co.nz/model-building.html,7
+Ch. 25: Many models,https://r4ds.had.co.nz/many-models.html,7
+Ch. 26: Introduction,https://r4ds.had.co.nz/communicate-intro.html,8
+Ch. 27: R Markdown,https://r4ds.had.co.nz/r-markdown.html,8
+Ch. 28: Graphics for communication,https://r4ds.had.co.nz/graphics-for-communication.html,8
+Ch. 29: R Markdown formats,https://r4ds.had.co.nz/r-markdown-formats.html,8
+Ch. 30: R Markdown workflow,https://r4ds.had.co.nz/r-markdown-workflow.html,8
