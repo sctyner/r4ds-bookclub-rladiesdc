@@ -2,10 +2,12 @@
 title: "Meeting 2: Data Visualization and Tibbles"
 date: "July 29, 2021 from 7:00-8:30pm ET"
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = "center", out.width = "75%")
 ```
 
 ## Chapters to Read
@@ -61,8 +63,24 @@ Exercises are reproduced below.
 1.  Run `ggplot(data = mpg)`.
     What do you see? (#1)
 
+> Solution: 
+
+```{r}
+library(ggplot2)
+ggplot(data = mpg)
+```
 
 4.  Make a scatterplot of `hwy` vs `cyl`. (#4)
+
+> Solution: 
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(aes(x = cyl, y = hwy))
+ggplot(data = mpg) + 
+  geom_point(aes(x = hwy, y = cyl))
+```
+
 
 #### Section 3.3.1
 
@@ -73,13 +91,61 @@ Exercises are reproduced below.
       geom_point(mapping = aes(x = displ, y = hwy, color = "blue"))
     ```
 
+> Solution: `color = "blue"` is inside of `aes()` which means it's expecting a mapping: map the variable on the right of `=` ("blue") to the aesthetic value on the left of `=` (color). Because `"blue"` is a single value, all points are assigned the value "blue" and the default `ggplot2` color palette is used, which is where the pinkish-red comes from.  When manually changing color for all points, do not put your request inside of `aes()`, as in the revised example below.
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(aes( x = displ, y = hwy), color = "blue")
+```
+
 
 3.  Map a continuous variable to `color`, `size`, and `shape`.
     How do these aesthetics behave differently for categorical vs. continuous variables? (#3)
+    
+> Solution: 
+
+```{r}
+library(patchwork)
+
+p_color <- ggplot(data = mpg) + 
+  geom_point(aes( x = displ, y = hwy, color = cty)) + 
+  ggtitle("Color")
+
+p_size <- ggplot(data = mpg) + 
+  geom_point(aes( x = displ, y = hwy, size = cty)) + 
+  ggtitle("Size")
+
+p_shape <- ggplot(data = mpg) + 
+  geom_point(aes( x = displ, y = hwy, shape = cty)) + 
+  ggtitle("Shape")
+
+p_color + p_size
+```
+
+```{r, eval = FALSE}
+p_shape
+```
+
+```
+> Error: A continuous variable can not be mapped to shape
+> Run `rlang::last_error()` to see where the error occurred.
+```
+
+> Shape cannot be mapped to a continuous variable. The color aes mapping uses a gradient for continuous variables and palettes of different colors for categorical variables. The size aes mapping maps continuous values to area; it is not advised to use size for a discrete variable. 
+
 
 #### Section 3.5.1
 
 1.  What happens if you facet on a continuous variable? (#1)
+
+> Solution: It creates one facet per unique value. 
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(aes( x = displ, y = hwy)) + 
+  facet_wrap(~cty, nrow = 3)
+```
+
 
 2.  What do the empty cells in plot with `facet_grid(drv ~ cyl)` mean?
     How do they relate to this plot? (#2)
@@ -88,20 +154,35 @@ Exercises are reproduced below.
     ggplot(data = mpg) + 
       geom_point(mapping = aes(x = drv, y = cyl))
     ```
+    
+> Solution: The reference plot is below. 
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(drv ~ cyl)
+```
+
+> The empty cells mean that there are no observations where the value of `drv` is 4 (r) and the value of `cyl` is 5 (4 or 5). It relates to the scatterplot above as follows: there are no observations on the intersections of the major gridlines. 
+
 
 5.  Read `?facet_wrap`.
     What does `nrow` do?
     What does `ncol` do?
     What other options control the layout of the individual panels?
     Why doesn't `facet_grid()` have `nrow` and `ncol` arguments? (#5)
+    
+> Solution: `nrow` dictates how many rows of plots are drawn, while `ncol` dictacts how many columns of plots are drawn. Other options: `as.table` (arrange values from smallest to largest (default) or largest to smallest?), `drop` (drop all factor levels not in data), `dir` ('h' for horizontal fill (default) or 'v' for vertical fill). Facet_grid doesn't have ncol and nrow because the data determines the number of rows and columns. 
 
 
 #### Section 3.6.1
 
-1.  What geom would you use to draw a line chart?
-    A boxplot?
-    A histogram?
-    An area chart? (#1)
+1.  What geom would you use to draw a line chart? geom_line()
+    A boxplot? geom_boxplot()
+    A histogram? geom_histogram()
+    An area chart? geom_area()  (#1)
+    
+> Solution: For a line chart, I would use `geom_line`. For a boxplot, I would use `geom_boxplot`. For a histogram, I would use `geom_histogram`. For an area chart, I would use `geom_area`.
 
 2.  Run this code in your head and predict what the output will look like.
     Then, run the code in R and check your predictions. (#2)
@@ -111,13 +192,85 @@ Exercises are reproduced below.
       geom_point() + 
       geom_smooth(se = FALSE)
     ```
+    
+> Solution: I predict that it will be a scatterplot of the `mpg` data with `displ` on the x-axis and `hwy` on the y-axis. The points will be colored according to the `drv` variable. There will be a smoother drawn through each group of points (according to the `drv` variable)
+
+```{r}
+ggplot(data = mpg, 
+       mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE)
+
+ggplot(data = mpg, 
+       mapping = aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = drv)) + 
+  geom_smooth(se = FALSE)
+
+ggplot(data = mpg, 
+       mapping = aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_smooth(aes(color = drv), se = FALSE)
+
+# remove points from legend 
+ggplot(data = mpg, 
+       mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point(show.legend = FALSE) + 
+  geom_smooth(se = FALSE)
+```
+
 
 4.  What does the `se` argument to `geom_smooth()` do? (#4)
+
+> Solution: It draws the confidence interval around the smoother. 
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth()
+```
+
+> Bonus: You can control the level of confidence (default is 0.95 for 95% confidence) with the `level` argument to `geom_smooth()`. 
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(level = .5)
+
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") -> p_se 
+
+# how to get out the computed values that ggplot2
+# used "behind the scenes"
+# ggplot2::ggplot_build(p_se)
+```
 
 #### Section 3.7.1
 
 2.  What does `geom_col()` do?
     How is it different to `geom_bar()`? (#2)
+    
+> Solution: `col` is short for "column". It draws a column with a specified height (y) at a specified location (x). x and y are mapped to variables in the data. `bar` is short for "bar chart". It draws a bar at a specified location (x), the height of which represent how many observations in the data have the corresponding x value.  
+
+```{r}
+ggplot(data = mtcars) + 
+  geom_bar(aes(x = gear))
+
+ggplot(data = mtcars) + 
+  geom_col(aes(x = mpg, y = disp))
+
+ggplot(data = mtcars) + 
+  geom_bar(aes(x = mpg, y = disp), stat = "identity")
+
+# histograms hug: bars are touching 
+ggplot(data = mtcars) + 
+  geom_histogram(aes(x = mpg), binwidth = 5)
+
+# bar charts don't hug
+ggplot(data = mtcars) + 
+  geom_bar(aes(x = carb))
+```
+
 
 5.  In our proportion bar chart, we need to set `group = 1`.
     Why?
@@ -129,6 +282,16 @@ Exercises are reproduced below.
     ggplot(data = diamonds) + 
       geom_bar(mapping = aes(x = cut, fill = color, y = after_stat(prop)))
     ```
+    
+> Solution: The group value defaults to existing aes mappings. So in the first plot, `after_stat` is computing what proportion of the data in each group (fair, good, etc.) belong to that group, which is always 1. In the second example, the colors of the bars show the proportion within those groups of each value, but not the overall proprtions. We get the latter when adding the `group = color` aesthetic mapping. 
+
+```{r, eval = FALSE}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = after_stat(prop), 
+                         group = 1))
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = color, y = after_stat(prop), group = color))
+```
 
 #### Section 3.8.1
 
@@ -137,15 +300,58 @@ Exercises are reproduced below.
 
     ```{r, fig.alt = "Scatterplot of highway fuel efficiency versus city fuel efficiency of cars in ggplot2::mpg that shows a positive association. The number of points visible in this plot is less than the number of points in the dataset."}
     ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
-      geom_point()
+      geom_point(position = "jitter")
     ```
 
+> Solution: There is overplotting (multiple observations represented by only 1 visual point). Resolve it with `geom_jitter` instead of `geom_point`. 
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter()
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_point(alpha = 0.1)
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter(alpha = 0.5, width = .1, height = .1)
+```
+
+
+
 2.  What parameters to `geom_jitter()` control the amount of jittering? (#2)
+
+> Solution: `width` and `height`. 
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter(height = 0, width = 1)
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter(height = 1, width = 0)
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter(height = 1, width = 1)
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter(height = .1, width = .1)
+```
+
 
 #### Section 3.9.1
 
 2.  What does `labs()` do?
     Read the documentation. (#2)
+    
+> Solution: `labs()` allows you to provide various **lab**els for parts of the plot (x-axis, plot title, plot subtitle, etc.)
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy, color = drv)) + 
+  geom_jitter(height = .1, width = .1) + 
+  labs(x = "X axis label", 
+       y = "Y axis label", 
+       title = "Plot title", 
+       subtitle = "Plot subtitle",
+       caption = "Plot caption", 
+       tag = "Plot tag", 
+       color = "Legend title")
+```
 
 4.  What does the plot below tell you about the relationship between city and highway mpg?
     Why is `coord_fixed()` important?
@@ -158,11 +364,42 @@ Exercises are reproduced below.
       coord_fixed()
     ```
 
+> Solution: As the city mpg of a car increases, so does the highway mpg. `coord_fixed()` draws the plot so that 1 unit on the x-axis is equal to 1 unit on the 1-axis, so 1 more mpg on the x-axis takes up the same amount of space as 1 more mpg on the y-axis. `geom_abline()` draws the line y = x, where the values of x- and y-axis are equal. The plot makes intuitive sense: nearly all cars get more MPG on the highway than they do in the city. 
+
+**Simina:** Use coord_fixed for PCA plots (1st prin comp vs 2nd prin comp)
+
+**Maddie:** How to make the plot square? 
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed() + 
+  xlim(c(0, 50)) + 
+  ylim(c(0, 50))
+```
+
 
 ### Chapter 10 Exercises
 
 1.  How can you tell if an object is a tibble?
     (Hint: try printing `mtcars`, which is a regular data frame).
+    
+> Solution: There are at least 2 ways. See below, where mtcars is a data frame, while diamonds is a tibble.
+
+```{r}
+library(tibble)
+# print the objects 
+mtcars
+diamonds
+# ask for their class
+class(mtcars)
+class(diamonds)
+# Simina: 
+is_tibble(mtcars)
+is_tibble(diamonds)
+```
+
 
 2.  Compare and contrast the following operations on a `data.frame` and equivalent tibble.
     What is different?
@@ -175,4 +412,72 @@ Exercises are reproduced below.
     df[, c("abc", "xyz")]
     ```
 
+> Solution: 
+
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+```
+   
+```{r}
+tbl <- tibble(abc = 1, xyz = "a")
+tbl$x
+tbl[, "xyz"]
+tbl[, c("abc", "xyz")]
+```    
+
+> There is no column with name `x`, yet `df$x` returns something. `df[, "xyz"]` returns a single vector (a different object than a data frame) while `tbl[, "xyz"]` returns a tibble (the same object type you started with).
+
 3.  If you have the name of a variable stored in an object, e.g. `var <- "mpg"`, how can you extract the reference variable from a tibble?
+
+> Solution: 
+
+```{r}
+var <- "mpg"
+# var <- mpg
+mtcars_tbl <- as_tibble(mtcars)
+mtcars_tbl[var]
+
+mtcars_tbl
+my_vars <- names(mtcars_tbl)
+
+for (v in my_vars){
+  print(summary(mtcars_tbl[[v]]))
+}
+
+summary(mtcars_tbl[["mpg"]])
+
+
+```
+
+### Open discussions
+
+```{r}
+# what is %in%? Not the same as the "in" in "for (i in 1:10)"
+"hp" %in% my_vars
+
+1 %in% seq(0, 2)
+1 %in% 0:2
+
+seq(0, 2, by = 0.5)
+
+seq(0, 2, length.out = 10)
+
+library(dplyr)
+mtcars %>% 
+  filter(cyl == 6)
+
+mtcars %>% 
+  filter(cyl %in% c(6, 8))
+
+# what does stroke in ggplot2 do? 
+# What does the stroke aesthetic do? What shapes does it work with? 
+# (Hint: use ?geom_point)
+mtcars %>% 
+  ggplot() + 
+  geom_point(aes( mpg, wt), shape = 21, fill = "red", stroke = 1)
+```
+
+
