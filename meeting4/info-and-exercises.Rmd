@@ -1,0 +1,215 @@
+---
+title: "Meeting 4: Data Importing, Tidying, and Joining"
+date: "August 26, 2021 from 7:00-8:30pm ET"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Chapters to Read
+
+This week, we'll be discussing: 
+
+- Data Import
+- Data Tidying
+- Relational data
+
+### Physical Book
+
+If you're reading the physical book, the chapters to read are: 
+
+```{r echo=FALSE}
+library(tidyverse)
+read_csv("../physical-book-chapter-schedule.csv") %>% 
+  filter(Meeting == 4) %>% 
+  select(-Meeting) %>% 
+  knitr::kable()
+```
+
+### Online Book
+
+If you're reading the online book, the chapters to read are: 
+
+```{r echo=FALSE}
+library(tidyverse)
+read_csv("../online-book-chapter-schedule.csv") %>% 
+  filter(Meeting == 4) %>% 
+  select(-Meeting) %>% 
+  knitr::kable()
+```
+
+## Exercises 
+
+All exercises refer to the online book chapters. The book exercises and online exercises may differ, so to make sure everyone is doing the same exercises, please refer to the online book chapters.
+
+- Chapter 11: Section 11.2.2 # 1, 2
+- Chapter 11: Section 11.3.5 # 2, 5, 7
+- Chapter 12: Section 12.2.1 # 2 (all parts)
+- Chapter 12: Section 12.3.3 # 1, 3
+- Chapter 12: Section 12.4.3 # 1, 2
+- Chapter 12: Section 12.5.1 # 1, 2
+- Chapter 12: Section 12.6.1 # 3, 4
+- Chapter 13: Section 13.2.1 # 1, 4
+- Chapter 13: Section 13.3.1 # 2 (all parts)
+- Chapter 13: Section 13.4.6 # 1, 2, 5
+- Chapter 13: Section 13.5.1 # 1, 2, 3, 5
+
+Exercises are reproduced below.
+
+### Chapter 11 Exercises 
+
+#### Section 11.2.2 (#1, #2)
+
+1. What function would you use to read a file where fields were separated with "|"?
+
+2. Apart from `file`, `skip`, and `comment`, what other arguments do `read_csv()` and `read_tsv()` have in common?
+
+#### Section 11.3.5 (#2, #5, #7)
+
+2. What happens if you try and set `decimal_mark` and `grouping_mark` to the same character? What happens to the default value of `grouping_mark` when you set `decimal_mark` to `","`? What happens to the default value of `decimal_mark` when you set the `grouping_mark` to `"."`?
+
+5. What’s the difference between `read_csv()` and `read_csv2()`?
+
+7. Generate the correct format string to parse each of the following dates and times:
+
+```{r}
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 2014
+t1 <- "1705"
+t2 <- "11:15:10.12 PM"
+```
+
+### Chapter 12 Exercises
+
+#### Section 12.2.1 (#2, all parts)
+
+2. Compute the rate for table2, and table4a + table4b. You will need to perform four operations:
+
+    1. Extract the number of TB cases per country per year.
+    2. Extract the matching population per country per year.
+    3. Divide cases by population, and multiply by 10000.
+    4. Store back in the appropriate place.
+  
+Which representation is easiest to work with? Which is hardest? Why?
+
+#### Section 12.3.3 (#1, #3)
+
+1. Why are `pivot_longer()` and `pivot_wider()` not perfectly symmetrical? Carefully consider the following example:
+
+```{r}
+stocks <- tibble(
+  year   = c(2015, 2015, 2016, 2016),
+  half  = c(   1,    2,     1,    2),
+  return = c(1.88, 0.59, 0.92, 0.17)
+)
+stocks %>% 
+  pivot_wider(names_from = year, values_from = return) %>% 
+  pivot_longer(`2015`:`2016`, names_to = "year", values_to = "return")
+```
+
+(Hint: look at the variable types and think about column names.)
+
+`pivot_longer()` has a names_ptypes argument, e.g.  `names_ptypes = list(year = double())`. What does it do?
+
+3. What would happen if you widen this table? Why? How could you add a new column to uniquely identify each value?
+
+```{r}
+people <- tribble(
+  ~name,             ~names,  ~values,
+  #-----------------|--------|------
+  "Phillip Woods",   "age",       45,
+  "Phillip Woods",   "height",   186,
+  "Phillip Woods",   "age",       50,
+  "Jessica Cordero", "age",       37,
+  "Jessica Cordero", "height",   156
+)
+```
+
+#### Section 12.4.3 (#1, #2)
+
+1. What do the extra and fill arguments do in `separate()`? Experiment with the various options for the following two toy datasets.
+
+```{r}
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>% 
+  separate(x, c("one", "two", "three"))
+
+tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% 
+  separate(x, c("one", "two", "three"))
+```
+
+2. Both `unite()` and `separate()` have a remove argument. What does it do? Why would you set it to `FALSE`?
+
+#### Section 12.5.1 (#1, #2) 
+
+1. Compare and contrast the `fill` arguments to `pivot_wider()` and `complete()`.
+
+2. What does the direction argument to `fill()` do?
+
+#### Section 12.6.1 (#3, #4)
+
+3. I claimed that `iso2` and `iso3` were redundant with country. Confirm this claim.
+
+4. For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+
+
+### Chapter 13 Exercises 
+
+#### Section 13.2.1 (#1, #4)
+
+1. Imagine you wanted to draw (approximately) the route each plane flies from its origin to its destination. What variables would you need? What tables would you need to combine?
+
+4. We know that some days of the year are "special", and fewer people than usual fly on them. How might you represent that data as a data frame? What would be the primary keys of that table? How would it connect to the existing tables?
+
+#### Section 13.3.1 (#2, all parts)
+
+2. Identify the keys in the following datasets:
+
+    - Lahman::Batting,
+    - babynames::babynames
+    - nasaweather::atmos
+    - fueleconomy::vehicles
+    - ggplot2::diamonds
+    
+(You might need to install some packages and read some documentation.)
+
+#### Section 13.4.6 (#1, #2, #5)
+
+1. Compute the average delay by destination, then join on the airports data frame so you can show the spatial distribution of delays. Here’s an easy way to draw a map of the United States:
+
+```{r, eval = FALSE}
+airports %>%
+  semi_join(flights, c("faa" = "dest")) %>%
+  ggplot(aes(lon, lat)) +
+    borders("state") +
+    geom_point() +
+    coord_quickmap()
+```
+
+(Don’t worry if you don’t understand what `semi_join()` does — you’ll learn about it next.)
+
+You might want to use the size or colour of the points to display the average delay for each airport.
+
+2. Add the location of the origin and destination (i.e. the `lat` and `lon`) to flights.
+
+5. What happened on June 13, 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
+
+#### Section 13.5.1 (#1, #2, #3, #5)
+
+1. What does it mean for a flight to have a missing `tailnum`? What do the tail numbers that don’t have a matching record in planes have in common? (Hint: one variable explains ~90% of the problems.)
+
+2. Filter flights to only show flights with planes that have flown at least 100 flights.
+
+3. Combine fueleconomy::vehicles and fueleconomy::common to find only the records for the most common models.
+
+5. What does `anti_join(flights, airports, by = c("dest" = "faa"))` tell you? What does `anti_join(airports, flights, by = c("faa" = "dest"))` tell you?
+
+
+## Open Disussion
+
+
+
