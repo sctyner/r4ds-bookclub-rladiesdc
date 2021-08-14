@@ -5,7 +5,8 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = "center")
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      fig.align = "center", class.source = 'fold-hide')
 ```
 
 ## Chapters to Read
@@ -55,8 +56,12 @@ All exercises refer to the online book chapters. The book exercises and online e
 - Chapter 7: Section 7.5. Do the first 2 problems of each section 7.5.1.1, 7.5.2.1, and 7.5.3.1
 - BONUS: Follow the style of [this tweet](https://twitter.com/hadleywickham/status/1359852563726819332?s=20) to "translate" some of your favorite song lyrics into {tidyverse}-style code  
 
+Exercises are reproduced below. Here are the packages we'll be using: 
 
-Exercises are reproduced below.
+```{r}
+library(dplyr)
+library(ggplot2)
+```
 
 ### Chapter 5 Exercises
 
@@ -74,97 +79,238 @@ Whenever flights are referred to, use the `nycflights13::flights` data to answer
     f.  ~~Were delayed by at least an hour, but made up over 30 minutes in flight~~
     g.  Departed between midnight and 6am (inclusive)
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+# first load the data: 
+data("flights", package = "nycflights13")
+
+# read the data documentation:
+# ?nycflights13::flights
+
 # Had an arrival delay of two or more hours
+flights %>% 
+  filter(arr_delay >= 120) %>% 
+  glimpse()
+
 # Were operated by United, American, or Delta
+# see ?nycflights13::airlines
+data("airlines", package = "nycflights13")
+
+# advanced solution to get airline codes
+airlines %>% 
+  filter(stringr::str_detect(name, "United|American|Delta")) %>% 
+  pull(carrier) -> uad
+
+# or, simply view the data and find the codes
+# View(airlines)
+# uad <- c("AA", "DL", "UA")
+
+flights %>% 
+  filter(carrier %in% uad) %>% 
+  glimpse()
+
 # Arrived more than two hours late, but didn't leave late
+
+flights %>% 
+  filter(arr_delay > 120, dep_delay <= 0) %>% 
+  glimpse() 
+
 # Departed between midnight and 6am (inclusive)
+
+flights %>% 
+  filter(dep_time == 2400 | (dep_time >=1 & dep_time <= 600)) %>% 
+  glimpse()
 ```
 
-2.  Sort `flights` to find the flights with longest departure delays.
-    Find the flights that left earliest.
-
-> Solution:
+    
+2. Another useful dplyr filtering helper is `between()`. What does it do? Can you use it to simplify the code needed to answer the previous challenges?
 
 ```{r}
+flights %>% 
+  filter(between(hour, 1, 3))
 
+between(pi, 3, 4)
 ```
 
 
-3.  Sort `flights` to find the fastest (highest speed) flights.
-    (Hint: try sorting by a calculation).
-
-> Solution:
+> Sam's Solution: 
 
 ```{r}
-
+flights %>% 
+  filter(dep_time == 2400 | between(dep_time, 1, 600)) %>% 
+  glimpse()
 ```
 
-4.  Which flights travelled the farthest?
-    Which travelled the shortest?
 
-> Solution:
+3. How many flights have a missing `dep_time`? What other variables are missing? What might these rows represent?
+
+> Live Solution:
 
 ```{r}
-# Which flights travelled the farthest?
-# Which travelled the shortest?
+flights %>% 
+  filter(is.na(dep_time)) %>% 
+  count()
+
+# what others variables have missing values 
+summary(flights)
+
+# simina's solution
+sapply(flights, function(x){
+  sum(is.na(x))
+  }
+)
+
+# what do the missing rows represent?? 
+# cancelled flights
 ```
+
+
+> Sam's Solution: 
+
+```{r}
+flights %>% 
+  filter(is.na(dep_time)) %>% 
+  glimpse()
+```
+
+
+4. Why is `NA ^ 0` not missing? Why is `NA | TRUE` not missing? Why is `FALSE & NA` not missing? Can you figure out the general rule? (`NA * 0` is a tricky counterexample!)
+
+> Sam's Solution: 
+
+```{r}
+# anything to power of 0 is always 1.
+NA ^ 0
+
+# anything or TRUE is always true, so TRUE
+NA | TRUE
+
+# intersection of false with anything is false
+FALSE & NA
+
+# NA could be Inf or -Inf which are undefined (NaN), so the NA is propogated
+NA * 0
+```
+
 
 #### Section 5.3.1 # 1, 3, 4
  
-1. How could you use arrange() to sort all missing values to the start? (Hint: use is.na()).
+1. How could you use `arrange()` to sort all missing values to the start? (Hint: use `is.na()`).
 
-> Solution:
+> Live Solution: 
 
 ```{r}
+flights %>% 
+  arrange(!is.na(dep_time))
 
+flights %>% 
+  arrange(desc(is.na(dep_time)))
+```
+
+
+> Sam's Solution:
+
+```{r}
+flights %>% 
+  arrange(!is.na(air_time))
 ```
 
 3. Sort flights to find the fastest (highest speed) flights.
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+flights %>% 
+  arrange(distance / air_time) %>% 
+  glimpse()
 ```
 
 4. Which flights travelled the farthest? Which travelled the shortest?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+# Which flights travelled the farthest?
+flights %>% 
+  arrange(desc(distance)) %>% 
+  glimpse()
 
+# Which travelled the shortest?
+flights %>% 
+  arrange(distance) %>% 
+  glimpse()
 ```
+
 #### Section 5.4.1 # 1 - 4
 
 1. Brainstorm as many ways as possible to select `dep_time`, `dep_delay`, `arr_time`, and `arr_delay` from `flights`.
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+my_vars <- c("dep_time", "dep_delay", "arr_time", "arr_delay")
+flights %>% 
+  select(my_vars) %>% 
+  head()
 
+flights %>% 
+  select(4, 6, 7, 9) %>% 
+  head()
+
+
+flights %>% 
+  select(contains("_time"), contains("_delay"), -contains("sched"), -contains("air")) %>% 
+  head()
+
+
+flights %>% 
+  select(matches("^dep_|^arr_")) %>% 
+  head()
 ```
 
 2. What happens if you include the name of a variable multiple times in a select() call?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+flights %>% 
+  select(arr_time, arr_delay, dep_delay, arr_time) %>% 
+  glimpse()
 ```
 
-3. What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+3. What does the `any_of()` function do? Why might it be helpful in conjunction with this vector?
 
-```r
+```{r}
 vars <- c("year", "month", "day", "dep_delay", "arr_delay")
 ```
 
-> Solution:
+> Live Solution:
 
 ```{r}
+flights %>% 
+  select(any_of(vars))
 
+flights %>% 
+  select(year, month, day, dep_delay, arr_delay)
+
+flights %>% 
+  select(vars)
+```
+
+
+
+```{r}
+vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+```
+
+> Sam's Solution:
+
+```{r}
+# ?any_of
+
+flights %>% 
+  select(any_of(vars))
 ```
 
 4. Does the result of running the following code surprise you? How do the select helpers deal with case by default? How can you change that default?
@@ -172,112 +318,316 @@ vars <- c("year", "month", "day", "dep_delay", "arr_delay")
 ```r
 select(flights, contains("TIME"))
 ```
-> Solution:
+> Sam's Solution:
 
 ```{r}
+# ?contains
+select(flights, contains("TIME"))
 
+select(flights, contains("TIME", ignore.case = F))
 ```
 
 #### Section 5.5.2 # 1, 3, 5
 
-1. Currently dep_time and sched_dep_time are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+1. Currently `dep_time` and `sched_dep_time` are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
 
-> Solution:
+> Live Solution: 
 
 ```{r}
+# 1. write a fn that takes HHMM numbers and converts them to minutes since midnight 
 
+convert_minutes <- function(tm){
+  
+  hr <- tm %/% 100 # hour
+  mins <- tm %% 100
+  
+  msm <- hr * 60 + mins
+  
+  if (msm == 1440){
+    msm <- 0
+  } 
+  
+  return(msm)
+}
+
+
+
+flights %>% 
+  mutate(dep_time = convert_minutes(dep_time), 
+         sched_dep_time = convert_minutes(sched_dep_time)) -> flights
 ```
 
-3. Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+flights %>% 
+  select(contains("dep_time")) %>% 
+  head()
 
+# function to convert time in hhmm form to number of minutes since midnight.
+convert_time <- function(hhmm){
+  hours = hhmm %/% 100 # integer division
+  minutes = hhmm %% 100 # modulo
+  
+  hours * 60 + minutes
+}
+
+flights <- flights %>% 
+  mutate(across(contains("dep_time"), convert_time))
+
+flights %>% 
+  select(contains("dep_time"))
+```
+
+3. Compare `dep_time`, `sched_dep_time`, and `dep_delay`. How would you expect those three numbers to be related?
+
+> Live Solution: 
+
+```{r}
+flights %>% 
+  select(dep_time, sched_dep_time, dep_delay) %>% 
+  mutate(dep_delay2 = dep_time - sched_dep_time)
+```
+
+
+> Sam's Solution:
+
+```{r}
+# these are now the new versions of dep_time and sched_dep_time 
+flights %>% 
+  select(contains("dep")) %>% 
+  glimpse()
+
+flights %>% 
+  select(contains("dep")) %>% 
+  mutate(computed_dep_delay = dep_time - sched_dep_time) %>% 
+  glimpse()
 ```
 
 5. What does 1:3 + 1:10 return? Why?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+1:3 + 1:10
 ```
 
 #### Section 5.6.7 # 2 - 6
 
 2. Come up with another approach that will give you the same output as `not_cancelled %>% count(dest)` and `not_cancelled %>% count(tailnum, wt = distance)` (without using `count()`).
 
-> Solution:
+> Live Solution: 
 
 ```{r}
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
 
+not_cancelled %>% 
+  count(dest)
+
+not_cancelled %>% 
+  group_by(dest) %>% 
+  summarise(n = n())
+
+not_cancelled %>% 
+  count(tailnum, wt = distance)
+
+not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarize(total_distance = sum(distance, na.rm = TRUE))
+```
+
+
+> Sam's Solution:
+
+```{r}
+# not cancelled data created in section 5.6.2
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+# output 1 
+not_cancelled %>% 
+  count(dest) %>% 
+  glimpse()
+
+# alternate method 
+not_cancelled %>% 
+  group_by(dest) %>% 
+  summarize(n = n()) %>% 
+  glimpse()
+
+# output 2
+not_cancelled %>% 
+  count(tailnum, wt = distance) %>% 
+  glimpse()
+
+# alternate method 
+not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarize(n = sum(distance)) %>% 
+  glimpse()
 ```
 
 3. Our definition of cancelled flights (`is.na(dep_delay) | is.na(arr_delay)` ) is slightly suboptimal. Why? Which is the most important column?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+# one solution: if a flight has a scheduled departure time (all do) but the 
+# actual departure time is missing, it was cancelled 
+flights %>% 
+  filter(is.na(dep_time)) %>% 
+  glimpse()
 ```
 
 4. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
 
-> Solution:
+```{r}
+cancelled <- flights %>% 
+  filter(is.na(dep_time))
+
+cancelled %>% 
+  group_by(year, month, day) %>% 
+  count() %>% 
+  mutate(date = lubridate::make_date(year, month, day)) %>% 
+  ggplot() + 
+  geom_line(aes(x = date, y = n ))
+
+flights %>%
+  group_by(year, month, day) %>% 
+  summarise(cancel = sum(is.na(dep_delay)),
+            mean_delay = mean(dep_delay, na.rm = TRUE)) %>% 
+  filter(cancel <= 200) %>% 
+  ggplot(aes(cancel, mean_delay)) +
+  geom_point(alpha = 0.5) + 
+  geom_smooth(method = "lm")
+```
+
+
+> Sam's Solution:
 
 ```{r}
-
+flights %>% 
+  mutate(is_cancelled = is.na(dep_time)) %>% 
+  group_by(year, month, day) %>% 
+  summarize(n_cancelled = sum(is_cancelled), 
+            n_flights = n(),
+            prop_cancelled = n_cancelled / n_flights, 
+            avg_dep_delay = mean(dep_delay, na.rm = TRUE) ) %>% 
+  arrange(desc(prop_cancelled)) %>% 
+  ggplot(aes(x = avg_dep_delay, y= prop_cancelled)) + 
+  geom_point() + 
+  geom_smooth()
 ```
 
 5. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about `flights %>% group_by(carrier, dest) %>% summarise(n())`)
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+flights %>% 
+  group_by(carrier) %>% 
+  summarise(mean_delay = mean(dep_delay, na.rm = TRUE)) %>% 
+  arrange(desc(mean_delay)) %>% 
+  left_join(airlines)
 
+data("airports", package = "nycflights13")
+airports <- airports %>% select(faa, name, tzone)
+
+flights %>% 
+  group_by(origin) %>% 
+  summarise(mean_delay = mean(dep_delay, na.rm = TRUE)) %>% 
+  arrange(desc(mean_delay)) %>% 
+  left_join(airports, by = c("origin" = "faa"))
+
+flights %>% 
+  group_by(carrier, dest) %>% 
+  summarise(mean_delay = mean(dep_delay, na.rm = TRUE)) %>% 
+  arrange(desc(mean_delay)) %>% 
+  left_join(airlines) %>% 
+  left_join(airports, by = c("dest" = "faa"), suffix = c("_carrier", "_dest") ) %>% 
+  glimpse()
 ```
 
 6. What does the `sort` argument to `count()` do. When might you use it?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+flights %>% 
+  count(dest, sort = T)
 ```
 
 #### Section 5.7.1 # 2, 4, 6, 8
 
 2. Which plane (tailnum) has the worst on-time record?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+flights %>% 
+  group_by(tailnum) %>% 
+  summarize(mean_arr_delay = mean(arr_delay, na.rm = T)) %>% 
+  arrange(desc(mean_arr_delay)) %>% 
+  slice(1)
 ```
 
 4. For each destination, compute the total minutes of delay. For each flight, compute the proportion of the total delay for its destination.
 
-> Solution:
+> Live Solution: 
 
 ```{r}
+flights %>% 
+  group_by(dest) %>% 
+  filter(arr_delay > 0) %>% 
+  mutate(total_min_delay = sum(arr_delay),
+         prop_delay = arr_delay / total_min_delay
+  ) %>% 
+  arrange(desc(prop_delay))
+```
 
+
+> Sam's Solution:
+
+```{r}
+flights %>% 
+  filter(arr_delay > 0) %>% 
+  group_by(dest) %>% 
+  mutate(total_arr_delay = sum(arr_delay),
+         prop_tot_delay = arr_delay / total_arr_delay) %>%
+  arrange(desc(prop_tot_delay))
+  
 ```
 
 6. Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+flights %>% 
+  arrange(air_time)
 
+flights %>% 
+  filter(!is.na(arr_time)) %>% 
+  group_by(dest) %>% 
+  mutate(shortest_flight_airtime = air_time[which.min(distance)], 
+         at_over_shortest_at = air_time / shortest_flight_airtime) %>% 
+  arrange(at_over_shortest_at) %>% 
+  select(origin, dest, air_time, shortest_flight_airtime, at_over_shortest_at) %>% 
+  glimpse()
 ```
 
 8. For each plane, count the number of flights before the first delay of greater than 1 hour.
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+flights %>% 
+  group_by(tailnum) %>% 
+  mutate(cumulative_hr_delays = cumsum(dep_delay > 60)) %>% 
+  filter(cumulative_hr_delays < 1) %>% 
+  count(sort = T)
 ```
 
 ### Chapter 7 Exercises 
@@ -288,41 +638,64 @@ Unless otherwise noted, answer the questions using the `diamonds` data.
 
 2. Explore the distribution of `price`. Do you discover anything unusual or surprising? (Hint: Carefully think about the `binwidth` and make sure you try a wide range of values.)
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+ggplot(data = diamonds) + 
+  geom_histogram(aes(x = price))
 ```
 
 3. How many diamonds are 0.99 carat? How many are 1 carat? What do you think is the cause of the difference?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+diamonds %>% 
+  filter(carat == .99) %>% 
+  count()
 
+diamonds %>% 
+  filter(carat == 1) %>% 
+  count()
 ```
 
 4. Compare and contrast `coord_cartesian()` vs `xlim()` or `ylim()` when zooming in on a histogram. What happens if you leave binwidth unset? What happens if you try and zoom so only half a bar shows?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+ggplot(data = diamonds) + 
+  geom_histogram(aes(x = carat), binwidth = .1)
 
+ggplot(data = diamonds) + 
+  geom_histogram(aes(x = carat), binwidth = .1) + 
+  xlim(c(0,1))
+
+ggplot(data = diamonds) + 
+  geom_histogram(aes(x = carat), binwidth = .1) + 
+  coord_cartesian(xlim = c(0, 1))
+
+ggplot(data = diamonds) + 
+  geom_histogram(aes(x = carat), binwidth = .1) + 
+  coord_cartesian(xlim = c(1, 1.95))
 ```
 
 #### Section 7.4.1 # 1, 2
 
 1. What happens to missing values in a histogram? What happens to missing values in a bar chart? Why is there a difference?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+ggplot(data = flights ) + 
+  geom_histogram(aes( x= dep_delay), binwidth = 10)
 
+qplot(x = c("red", "red", "blue", NA), geom = "bar")
 ```
 
 2. What does `na.rm = TRUE` do in `mean()` and `sum()`?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
 
@@ -334,54 +707,144 @@ Unless otherwise noted, answer the questions using the `diamonds` data.
 
 1. Use what you’ve learned to improve the visualisation of the departure times of cancelled vs. non-cancelled flights.
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
-
+# original visualization from section 7.4: 
+nycflights13::flights %>% 
+  mutate(
+    cancelled = is.na(dep_time),
+    sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60
+  ) -> dat_7.4
+dat_7.4 %>% 
+  ggplot(mapping = aes(sched_dep_time)) + 
+    geom_freqpoly(mapping = aes(colour = cancelled), binwidth = 1/4)
 ```
 
 2. What variable in the diamonds dataset is most important for predicting the price of a diamond? How is that variable correlated with cut? Why does the combination of those two relationships lead to lower quality diamonds being more expensive?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+# i'm thinking carat is most important for price
 
+ggplot(data = diamonds) + 
+  geom_point(aes(x = carat, y = price), alpha = 0.1)
+
+# how is carat correlated with cut? 
+ggplot(data = diamonds) + 
+  geom_boxplot(aes(x = cut, y = carat))
+
+# look at the combination of carat and cut
+ggplot(data = diamonds) + 
+  geom_point(aes(x = carat, y = price), alpha = 0.1) + 
+  facet_wrap(~cut)
+# lower quality diamonds (cut = fair) can be very large (>4 carat), making them most expensive
 ```
 
 ##### Section 7.5.2.1
 
 1. How could you rescale the count dataset above to more clearly show the distribution of cut within colour, or colour within cut?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+# count dataset 
+diamonds %>% 
+  count(color, cut) %>% 
+  glimpse()
 
+# using group_by 
+# dist of cut within colour 
+diamonds %>% 
+  count(color, cut) %>% 
+  group_by(color) %>% 
+  mutate(perc = n / sum(n)) %>% 
+  glimpse()
+
+# dist of color within cut 
+diamonds %>% 
+  count(color, cut) %>% 
+  group_by(cut) %>% 
+  arrange(cut, color) %>% 
+  mutate(perc = n / sum(n))
 ```
 
 2. Use `geom_tile()` together with dplyr to explore how average flight delays vary by destination and month of year. What makes the plot difficult to read? How could you improve it?
 
-> Solution:
+> Sam's Solution:
 
-```{r}
+```{r, out.width = "100%", fig.height=10, fig.width=8}
+flights %>% 
+  group_by(dest, month) %>% 
+  filter(!is.na(dep_delay)) %>% 
+  summarize(mean_dep_delay = mean(dep_delay)) %>% 
+  ggplot() + 
+  geom_tile(aes(x = month, y = dest, fill = mean_dep_delay))
+
+
+# idea: group the destinations by time zone
+flights %>% 
+  group_by(dest, month) %>% 
+  filter(!is.na(dep_delay)) %>% 
+  summarize(mean_dep_delay = mean(dep_delay)) %>% 
+  left_join(airports, 
+            by = c("dest" = "faa")) -> by_tzone 
+
+by_tzone %>%  
+  ggplot() + 
+  geom_tile(aes(x = month, y = dest, fill = mean_dep_delay)) + 
+  facet_wrap(~tzone, scales = "free_y")
+  
+# ok, a bit tricky still. only look at chi, la, ny 
+
+by_tzone %>% 
+  filter(tzone %in% c("America/Chicago", "America/Los_Angeles", "America/New_York")) %>% 
+  ggplot() + 
+  geom_tile(aes(x = month, y = dest, fill = mean_dep_delay), color = "black", size = .1) + 
+  facet_grid(rows = vars(tzone), scales = "free_y", space = "free_y") + 
+  scale_x_continuous(breaks = 1:12, labels = 1:12, expand = c(0,0)) + 
+  scale_fill_gradient2(low = "green", mid = "white", high = "red") 
 
 ```
 
-##### Sedtion 7.5.3.1
+##### Section 7.5.3.1
 
 1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using `cut_width()` vs `cut_number()`? How does that impact a visualisation of the 2d distribution of `carat` and `price`?
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+# visualization using boxplots 
+ggplot(data = diamonds, mapping = aes(x = carat, y = price)) + 
+  geom_boxplot(mapping = aes(group = cut_number(carat, 20)))
 
+# visualization with frequency polygon
+ggplot(data = diamonds) + 
+  geom_freqpoly(aes( x= price, 
+                     color = cut_number(carat, 5)))
+
+ggplot(data = diamonds) + 
+  geom_freqpoly(aes( x= price, 
+                     color = cut_width(carat, width = 1, boundary = 0)))
 ```
 
 2. Visualise the distribution of carat, partitioned by price.
 
-> Solution:
+> Sam's Solution:
 
 ```{r}
+diamonds %>% 
+  mutate(price_bin = cut_number(price, n = 10)) %>% 
+  ggplot(aes(x = carat, y = price_bin)) + 
+  geom_boxplot()
 
+diamonds %>% 
+  mutate(price_bin = cut_width(price, width = 2000, boundary = 0)) %>% 
+  ggplot(aes(x = carat, y = price_bin)) + 
+  geom_boxplot()
 ```
 
 ### Bonus Exercise
@@ -391,4 +854,30 @@ Follow the style of [this tweet](https://twitter.com/hadleywickham/status/135985
 ```{r out.width="50%", echo=FALSE}
 knitr::include_graphics("img/pipe_song_tweet.png")
 ```
+
+> Sam's Song
+
+```{r, eval = FALSE}
+scrub <- guy %>% 
+  thinks(what = is(who = "he", what = "fly")) %>% 
+  talkin(when = "always", about = wants(who = "he")) %>% 
+  sits(where = "his broke a$$")
+
+alias(scrub) == "busta"
+# > [1] TRUE
+
+I %>% 
+  want(man != scrub)
+```
+
+
+
+### Open discussion 
+
+What is `%>%`? 
+
+- "Pipe operator" 
+- takes an object on the left of `%>%` and makes it the first argument of the function on the right of the `%>%`
+- makes code more human-readable: x %>% g(y) %>% h() vs. h(g(x,y))
+- "Take x, and do g to it, then take the output from g and do h to it" 
 
