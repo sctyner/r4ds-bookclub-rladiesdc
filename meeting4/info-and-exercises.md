@@ -97,6 +97,26 @@ args(read_tsv)
     ##     skip_empty_rows = TRUE, lazy = TRUE) 
     ## NULL
 
+> Brigid’s question
+
+11.2.2 \#4
+
+Sometimes strings in a CSV file contain commas. To prevent them from
+causing problems they need to be surrounded by a quoting character, like
+" or ’. By default, read\_csv() assumes that the quoting character will
+be ". What argument to read\_csv() do you need to specify to read the
+following text into a data frame?
+
+``` r
+txt <- "x,y\n1,'a,b'"
+read_csv(txt, quote = "\'")
+```
+
+    ## # A tibble: 1 × 2
+    ##       x y    
+    ##   <dbl> <chr>
+    ## 1     1 a,b
+
 #### Section 11.3.5 (\#2, \#5, \#7)
 
 2.  What happens if you try and set `decimal_mark` and `grouping_mark`
@@ -104,6 +124,58 @@ args(read_tsv)
     `grouping_mark` when you set `decimal_mark` to `","`? What happens
     to the default value of `decimal_mark` when you set the
     `grouping_mark` to `"."`?
+
+> Live solution:
+
+``` r
+library(readr)
+parse_double("1,234.789", 
+             locale = locale(grouping_mark = ",",
+                             decimal_mark = "."))
+```
+
+    ## [1] NA
+    ## attr(,"problems")
+    ## # A tibble: 1 × 4
+    ##     row   col expected               actual   
+    ##   <int> <int> <chr>                  <chr>    
+    ## 1     1    NA no trailing characters 1,234.789
+
+``` r
+parse_double("1,234.789")
+```
+
+    ## [1] NA
+    ## attr(,"problems")
+    ## # A tibble: 1 × 4
+    ##     row   col expected               actual   
+    ##   <int> <int> <chr>                  <chr>    
+    ## 1     1    NA no trailing characters 1,234.789
+
+``` r
+parse_number("1,234.789", 
+             locale = locale(grouping_mark = ",",
+                             decimal_mark = "."))
+```
+
+    ## [1] 1234.789
+
+``` r
+parse_double("1234.789", 
+             locale = locale(grouping_mark = ",",
+                             decimal_mark = "."))
+```
+
+    ## [1] 1234.789
+
+``` r
+# parse_double only wants you to use one mark? 
+
+# gwynn's solution
+parse_number("123,456.789", locale = locale(decimal_mark = ","))
+```
+
+    ## [1] 123.4568
 
 > Sam’s Solution:
 
@@ -149,6 +221,31 @@ d4 <- c("August 19 (2015)", "July 1 (2015)")
 d5 <- "12/30/14" # Dec 30, 2014
 t1 <- "1705"
 t2 <- "11:15:10.12 PM"
+```
+
+> Live Solution:
+
+``` r
+parse_time(t2)
+```
+
+    ## 23:15:10
+
+``` r
+parse_time(t2, "%H:%M:%OS %p")
+```
+
+    ## 23:15:10.12
+
+``` r
+parse_time("11:15:10.12 AM",  "%H:%M:%OS %p")
+```
+
+    ## 11:15:10.12
+
+``` r
+# reference 
+# ?strptime
 ```
 
 > Sam’s Solution:
@@ -361,6 +458,34 @@ people <- tribble(
   "Jessica Cordero", "height",   156
 )
 ```
+
+> Live Solution:
+
+``` r
+people %>% 
+  pivot_wider(names_from = names, values_from = values)
+```
+
+    ## # A tibble: 2 × 3
+    ##   name            age       height   
+    ##   <chr>           <list>    <list>   
+    ## 1 Phillip Woods   <dbl [2]> <dbl [1]>
+    ## 2 Jessica Cordero <dbl [1]> <dbl [1]>
+
+``` r
+people %>% 
+  group_by(name, names) %>% 
+  mutate(sample_id = row_number()) %>% 
+  pivot_wider(names_from = names, values_from = values)
+```
+
+    ## # A tibble: 3 × 4
+    ## # Groups:   name [2]
+    ##   name            sample_id   age height
+    ##   <chr>               <int> <dbl>  <dbl>
+    ## 1 Phillip Woods           1    45    186
+    ## 2 Phillip Woods           2    50     NA
+    ## 3 Jessica Cordero         1    37    156
 
 > Sam’s Solution:
 
@@ -697,6 +822,70 @@ length(unique(who$iso3))
 4.  For each country, year, and sex compute the total number of cases of
     TB. Make an informative visualisation of the data.
 
+> Live Solution
+
+``` r
+who %>%
+  pivot_longer(
+    cols = new_sp_m014:newrel_f65, 
+    names_to = "key", 
+    values_to = "cases", 
+    values_drop_na = TRUE
+  ) %>% 
+  mutate(
+    key = stringr::str_replace(key, "newrel", "new_rel")
+  ) %>%
+  separate(key, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1) -> who5
+
+who5 %>% 
+  count(var)
+```
+
+    ## # A tibble: 4 × 2
+    ##   var       n
+    ##   <chr> <int>
+    ## 1 ep    14304
+    ## 2 rel    2580
+    ## 3 sn    14342
+    ## 4 sp    44820
+
+``` r
+who5 %>% 
+  group_by(country, year, sex) %>% 
+  summarize(total_cases = sum(cases)) %>% 
+  filter(country == "Afghanistan") %>% 
+  ggplot(aes(x = year, y = total_cases, color = sex)) + 
+  geom_line()
+```
+
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+
+``` r
+who5 %>% 
+  group_by(country, year, sex) %>% 
+  summarize(total_cases = sum(cases)) %>% 
+  unite(country_sex, country, sex, remove = FALSE) %>% 
+  ggplot(aes(x = year, y = total_cases, color = sex, 
+             group = country_sex)) + 
+  geom_line(alpha = .5)
+```
+
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-28-2.png)<!-- -->
+
+``` r
+who5 %>% 
+  group_by(country, year, sex) %>% 
+  summarize(total_cases = sum(cases)) %>% 
+  unite(country_sex, country, sex, remove = FALSE) %>% 
+  ggplot(aes(x = year, y = total_cases, color = sex, 
+             group = country)) + 
+  geom_line(alpha = .5)
+```
+
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-28-3.png)<!-- -->
+
 > Sam’s Solution:
 
 ``` r
@@ -721,7 +910,7 @@ who5 %>%
   geom_line()
 ```
 
-![](info-and-exercises_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
 
 ``` r
 # more complex solution 
@@ -736,7 +925,7 @@ who5 %>%
   facet_wrap(~continent, scales = "free")
 ```
 
-![](info-and-exercises_files/figure-gfm/unnamed-chunk-24-2.png)<!-- -->
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-29-2.png)<!-- -->
 
 ``` r
 # not very good, a lot of NAs. Need to look more precisely at the names in the codelist data 
@@ -976,6 +1165,26 @@ learn about it next.)
 You might want to use the size or colour of the points to display the
 average delay for each airport.
 
+> Live Solution:
+
+``` r
+data("flights", package = "nycflights13")
+avg_delays <- flights %>% 
+  group_by(dest) %>% 
+  summarize(avg_delay = mean(arr_delay, na.rm = TRUE))
+
+data("airports", package = "nycflights13")
+avg_delays %>% 
+  left_join(airports, by = c("dest" = "faa")) %>% 
+  ggplot(aes(lon, lat)) +
+    borders("state") +
+    geom_point(aes(color = avg_delay), size = 1.5) +
+    coord_quickmap() + 
+    scale_color_gradient2(low = "navy", high = "red")
+```
+
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
 > Sam’s Solution:
 
 ``` r
@@ -993,10 +1202,39 @@ flights %>%
   theme(legend.position = "top")
 ```
 
-![](info-and-exercises_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
 
 2.  Add the location of the origin and destination (i.e. the `lat` and
     `lon`) to flights.
+
+> Live solution
+
+``` r
+airport_coord <- airports %>% select(faa, lat, lon)
+
+flights %>% 
+  left_join(airport_coord , by = c("origin" = "faa")) %>% 
+  left_join(airport_coord, by = c("dest" = "faa"), 
+            suffix = c("_origin", "_dest"))
+```
+
+    ## # A tibble: 336,776 × 23
+    ##     year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+    ##    <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>
+    ##  1  2013     1     1      517            515         2      830            819
+    ##  2  2013     1     1      533            529         4      850            830
+    ##  3  2013     1     1      542            540         2      923            850
+    ##  4  2013     1     1      544            545        -1     1004           1022
+    ##  5  2013     1     1      554            600        -6      812            837
+    ##  6  2013     1     1      554            558        -4      740            728
+    ##  7  2013     1     1      555            600        -5      913            854
+    ##  8  2013     1     1      557            600        -3      709            723
+    ##  9  2013     1     1      557            600        -3      838            846
+    ## 10  2013     1     1      558            600        -2      753            745
+    ## # … with 336,766 more rows, and 15 more variables: arr_delay <dbl>,
+    ## #   carrier <chr>, flight <int>, tailnum <chr>, origin <chr>, dest <chr>,
+    ## #   air_time <dbl>, distance <dbl>, hour <dbl>, minute <dbl>, time_hour <dttm>,
+    ## #   lat_origin <dbl>, lon_origin <dbl>, lat_dest <dbl>, lon_dest <dbl>
 
 > Sam’s Solution:
 
@@ -1009,6 +1247,22 @@ flight_locations <- flights %>%
 5.  What happened on June 13, 2013? Display the spatial pattern of
     delays, and then use Google to cross-reference with the weather.
 
+> Live solution:
+
+``` r
+flights %>% 
+  filter(month == 6, day == 13) -> june13  
+
+june13 %>% 
+  left_join(airport_coord, by = c("dest" = "faa")) %>% 
+  ggplot(aes(lon, lat, color = arr_delay)) +
+    borders("state") +
+    geom_point(size = 2) +
+    coord_quickmap()
+```
+
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+
 > Sam’s Solution:
 
 ``` r
@@ -1020,7 +1274,7 @@ flight_locations %>%
     coord_quickmap() 
 ```
 
-![](info-and-exercises_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+![](info-and-exercises_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
 
 ``` r
 # looks like most of the west coast flights made it but the midwest flights didn't 
@@ -1195,3 +1449,30 @@ anti_join(airports, flights, by = c("faa" = "dest")) %>% glimpse()
 ```
 
 ## Open Disussion
+
+`->` and `<-`
+
+``` r
+# "to the variable x, assign the value 4"
+x <- 4
+# "set x equal to 4" 
+x = 4
+# "assign the value 4 to the variable x"
+4 -> x
+# error! = behaves as <- , not as -> 
+4=x
+```
+
+The assignment arrow `->` or `<-` is an arrow that points a value to a
+variable and assigns the value to the variable.
+
+`is.na` and `na.rm`: `is.na` is a function that returns `TRUE` if the
+value is `NA` or `NaN`, and returns `FALSE` otherwise. `na.rm` is an
+argument in some functions (e.g. `mean`, `sd`, etc.) which tells the
+function to remove any `NA` values before performing any calculations.
+Otherwise, if there is an `NA`, the computation will result in `NA`.
+
+``` r
+# ?is.na
+# mean(x, na.rm = T) 
+```

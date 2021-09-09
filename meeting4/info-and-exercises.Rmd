@@ -626,10 +626,12 @@ You might want to use the size or colour of the points to display the average de
 > Live Solution: 
 
 ```{r}
+data("flights", package = "nycflights13")
 avg_delays <- flights %>% 
   group_by(dest) %>% 
   summarize(avg_delay = mean(arr_delay, na.rm = TRUE))
 
+data("airports", package = "nycflights13")
 avg_delays %>% 
   left_join(airports, by = c("dest" = "faa")) %>% 
   ggplot(aes(lon, lat)) +
@@ -779,18 +781,24 @@ anti_join(airports, flights, by = c("faa" = "dest")) %>% glimpse()
 `->` and `<-`
 
 ```{r, eval = FALSE}
+# "to the variable x, assign the value 4"
 x <- 4
+# "set x equal to 4" 
 x = 4
-4-> x
+# "assign the value 4 to the variable x"
+4 -> x
+# error! = behaves as <- , not as -> 
 4=x
 ```
 
+The assignment arrow `->` or `<-` is an arrow that points a value to a variable and assigns the value to the variable. 
 
-`is.na` and `na.rm`
+
+`is.na` and `na.rm`: `is.na` is a function that returns `TRUE` if the value is `NA` or `NaN`, and returns `FALSE` otherwise. `na.rm` is an argument in some functions (e.g. `mean`, `sd`, etc.) which tells the function to remove any `NA` values before performing any calculations. Otherwise, if there is an `NA`, the computation will result in `NA`.  
 
 ```{r}
 # ?is.na
-# na.rm 
+# mean(x, na.rm = T) 
 ```
 
 
