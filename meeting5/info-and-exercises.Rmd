@@ -1,0 +1,600 @@
+---
+title: "Meeting 5: Dealing with Special Data Types"
+date: "September 9, 2021 from 7:00-8:30pm ET"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Chapters to Read
+
+This week, we'll be discussing working with: 
+
+- Strings
+- Factors 
+- Dates and times
+
+### Physical Book
+
+If you're reading the physical book, the chapters to read are: 
+
+```{r echo=FALSE}
+library(tidyverse)
+read_csv("../physical-book-chapter-schedule.csv") %>% 
+  filter(Meeting == 5) %>% 
+  select(-Meeting) %>% 
+  knitr::kable()
+```
+
+### Online Book
+
+If you're reading the online book, the chapters to read are: 
+
+```{r echo=FALSE}
+library(tidyverse)
+read_csv("../online-book-chapter-schedule.csv") %>% 
+  filter(Meeting == 5) %>% 
+  select(-Meeting) %>% 
+  knitr::kable()
+```
+
+## Exercises 
+
+All exercises refer to the online book chapters. The book exercises and online exercises may differ, so to make sure everyone is doing the same exercises, please refer to the online book chapters.
+
+- Chapter 14: Section 14.2.5 # 1, 3, 5
+- Chapter 14: Section 14.3.1.1 # 2
+- Chapter 14: Section 14.3.2.1 # 2 (all parts)
+- Chapter 14: Section 14.3.3.1 # 1 (all parts)
+- Chapter 14: Section 14.3.4.1 # 3 (all parts)
+- Chapter 14: Section 14.3.5.1 # 2 (all parts)
+- Chapter 14: Section 14.4.1.1 # 2
+- Chapter 14: Section 14.4.2.1 # 1 
+- Chapter 14: Section 14.4.3.1 # 2
+- Chapter 14: Section 14.4.4.1 # 3
+- Chapter 14: Section 14.4.5.1 # 2
+- Chapter 14: Section 14.5.1 # 2
+- Chapter 15: Section 15.3.1 # 1
+- Chapter 15: Section 15.4.1 # 2
+- Chapter 15: Section 15.5.1 # 2
+- Chapter 16: Section 16.2.4 # 2, 3
+- Chapter 16: Section 16.3.4 # 3, 5
+- Chapter 16: Section 16.4.5 # 3, 4
+
+Exercises are reproduced below.
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+library(lubridate)
+```
+
+
+## Chapter 14 
+
+### Section 14.2.5 (1, 3, 5)
+
+1. In code that doesn't use stringr, you'll often see `paste()` and `paste0()`. What's the difference between the two functions? What stringr function are they equivalent to? How do the functions differ in their handling of NA?
+
+> Sam's Solution: 
+
+```{r}
+paste("Hello", "World")
+paste0("Hello", "World")
+# paste0 has no separator
+
+str_c("Hello", "World", sep = " ")
+str_c("Hello", "World")
+
+paste("This value is missing:", NA)
+str_c("This value is missing:", NA, sep = " ")
+```
+
+3. Use `str_length()` and `str_sub()` to extract the middle character from a string. What will you do if the string has an even number of characters?
+
+> Sam's Solution: 
+
+```{r}
+odd <- "seven"
+even <- "eighteen"
+
+middle <- function(string){
+  
+  N <- str_length(string)
+  
+  str_sub(string, ceiling(N/2), ceiling(N/2))
+  
+}
+
+middle(odd)
+middle(even)
+```
+
+
+5. What does `str_trim()` do? What's the opposite of `str_trim()`?
+
+```{r}
+str_trim(" Remove whitespace ")
+
+str_pad("Add whitespace", width = 16, side = "both")
+```
+
+
+### Section 14.3.1.1 (2)
+
+2. How would you match the sequence `"'\`?
+
+> Sam's Solution: 
+
+```{r}
+my_seq <- "\"'\\"
+str_view(my_seq, "\"'\\\\")
+# base R functions for dealing with strings:
+# sub()
+# gsub()
+```
+
+
+### Section 14.3.2.1 (2) 
+
+2. Given the corpus of common words in `stringr::words`, create regular expressions that find all words that:
+
+    a. Start with "y".
+    b. End with "x"
+    c. Are exactly three letters long. (Don't cheat by using `str_length()`!)
+    d. Have seven letters or more.
+    
+Since this list is long, you might want to use the match argument to `str_view()` to show only the matching or non-matching words.
+
+> Sam's solution:
+
+```{r}
+# a. Start with "y".
+str_view(words, "^y", match = TRUE)
+# b. End with "x"
+str_view(words, "x$", match = TRUE)
+# c. Are exactly three letters long. (Don't cheat by using `str_length()`!)
+str_view(words, "^[a-z]{3}$", match = TRUE)
+# d. Have seven letters or more.
+str_view(words, "[:alpha:]{7}", match = TRUE)
+```
+
+
+### Section 14.3.3.1 (1) 
+
+1. Create regular expressions to find all words that:
+
+    a. Start with a vowel.
+    b. That only contain consonants. (Hint: thinking about matching "not"-vowels.)
+    c. End with ed, but not with eed.
+    d. End with ing or ise.
+    
+> Live Solution: 
+
+```{r}
+# End with ed, but not with eed.
+str_view(words, "ed$", match = TRUE)
+str_view(words, "[^e]ed$", match = TRUE)
+# str_view(words, "e{1}d$", match = TRUE)
+```
+
+    
+> Sam's solution:
+    
+```{r}
+# a. Start with a vowel.
+str_view(words, "^[aeiou]", match = TRUE)
+# b. That only contain consonants. (Hint: thinking about matching "not"-vowels.)
+str_view(words, "[aeiou]", match = FALSE)
+# c. End with ed, but not with eed.
+str_view(words, "[^e]ed$", match = TRUE)
+# d. End with ing or ise.
+str_view(words, "ing$|ise$", match = TRUE)
+```
+
+
+### Section 14.3.4.1 (3) 
+
+3. Create regular expressions to find all words that:
+
+    a. Start with three consonants.
+    b. Have three or more vowels in a row.
+    c. Have two or more vowel-consonant pairs in a row.
+    
+> Live Solution: 
+
+```{r}
+#  b. Have three or more vowels in a row.
+str_view(words, "[aeiou]{3,}", match = TRUE)
+# note to R4DS: use match = TRUE in an example so people know to use it in the exercises. 
+# how would you find the words without str_view(match = TRUE )
+words[str_detect(words, "[aeiou]{3,}")]
+str_subset(words, "[aeiou]{3,}")
+# c. Have two or more vowel-consonant pairs in a row.
+# any vowel consonant e.g. abid
+str_view(words, "([aeiou][^aeiou]){2,}", match = TRUE)
+# same one eg. abab
+str_view(words, "([aeiou])([^aeiou])\\1\\2", match = TRUE)
+str_view(fruit, "([aeiou])([^aeiou])\\1\\2", match = TRUE)
+```
+
+    
+> Sam's solution:
+
+```{r}
+# a. Start with three consonants.
+str_view(words, "^[^aeiou]{3,}", match = TRUE)
+# b. Have three or more vowels in a row.
+str_view(words, "[aeiou]{3,}", match = TRUE)
+# c. Have two or more vowel-consonant pairs in a row.
+str_view(words, "([aeiou][^aeiou]){2,}", match = TRUE)
+```
+
+
+### Section 14.3.5.1 (2)
+
+2. Construct regular expressions to match words that:
+
+        a. Start and end with the same character.
+        b. Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+        c. Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+        
+> Sam's Solution: 
+
+```{r}
+# a. Start and end with the same character.
+str_view(words, "^([a-z])([a-z]*\\1$)|^[a-z]$", match = TRUE)
+# b. Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+str_view(words, "([a-z]*)([a-z]{2})([a-z]*)(\\2)([a-z]*)", match = TRUE)
+# c. Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+str_view(words, "([a-z]*)([a-z])([a-z]*)(\\2)([a-z]*)(\\2)([a-z]*)", match = TRUE)
+```
+
+
+### Section 14.4.1.1 (2)
+
+2. What word has the highest number of vowels? What word has the highest proportion of vowels? (Hint: what is the denominator?)
+
+> Sam's Solution: 
+
+```{r}
+vowel_count <- str_count(words, pattern = "[aeiou]")
+words[which.max(vowel_count)]
+word_length <- str_length(words)
+vowel_prop <- vowel_count/word_length
+
+words[which.max(vowel_prop)]
+
+# "a" is kinda boring. what's the next highest? 
+longer_idx <- which(word_length > 1)
+next_highest <- max(vowel_prop[longer_idx])
+
+words[longer_idx][which(vowel_prop[longer_idx] == next_highest)]
+```
+
+
+### Section 14.4.2.1 (1)
+
+1. In the previous example, you might have noticed that the regular expression matched "flickered", which is not a colour. Modify the regex to fix the problem.
+
+> Sam's Solution: 
+
+```{r}
+# from the book 
+colours <- c("red", "orange", "yellow", "green", "blue", "purple")
+colour_match <- str_c(colours, collapse = "|")
+colour_match2 <- str_c(" (", colour_match, ") ")
+
+# captures too much
+str_view(sentences, colour_match, match = TRUE)
+
+# captures just a color
+str_view(sentences, colour_match2, match = TRUE)
+
+```
+
+
+### Section 14.4.3.1 (2)
+
+2. Find all contractions. Separate out the pieces before and after the apostrophe.
+
+> Sam's Solution: 
+
+```{r}
+tibble(sentence = sentences) %>% 
+  tidyr::extract(
+    sentence, c("word", "contracted"),
+    "([A-Z|a-z]*)'([a-z]*)", 
+    remove = FALSE
+  ) %>% 
+  filter(!is.na(word))
+```
+
+
+### Section 14.4.4.1 (3)
+
+3. Switch the first and last letters in `words`. Which of those strings are still words?
+
+> Live solution:
+
+```{r}
+tibble(word = words) %>% 
+  mutate(len = str_length(word)) %>% 
+  filter(len > 1) %>% 
+  mutate(first = str_sub(word, 1, 1), 
+         last = str_sub(word, -1, -1), 
+         middle = str_sub(word, 2, -2), 
+         new_word = str_c(last, middle, first)) %>% 
+  filter(new_word %in% words) %>% 
+  pull(new_word)
+
+# could also probably do it with str_split
+# str_split(words, pattern = "")
+```
+
+
+
+> Sam's solution: 
+
+```{r}
+tibble(word = words) %>% 
+  mutate(length = str_length(word)) %>% 
+  filter(length >= 2) %>% 
+  tidyr::extract(
+    word, c("first", "mid", "last"),
+    "^([a-z]{1})([a-z]*)([a-z])$", 
+    remove = FALSE
+  ) %>% 
+  mutate(new_word = str_c(last, mid, first)) %>% 
+  filter(new_word %in% words)
+```
+
+
+### Section 14.4.5.1 (2)
+
+2. Why is it better to split up by `boundary("word")` than `" "`?
+
+> Sam's solution: 
+
+```{r}
+random_words <- sample(words, 5)
+space_words <- str_c(random_words, collapse = " ")
+tab_words <- str_c(random_words, collapse = "  ")
+
+str_split(space_words, " ")
+str_split(tab_words, " ")
+
+str_split(space_words, boundary("word"))
+str_split(tab_words, boundary("word"))
+```
+
+
+### Section 14.5.1  (2)
+
+2. What are the five most common words in sentences?
+
+> Sam's solution:
+
+```{r}
+sentences %>% 
+  str_split(pattern = boundary("word"), simplify = TRUE) %>% 
+  as.vector() %>% 
+  str_to_lower() %>% 
+  table() %>% 
+  sort(decreasing = T) %>% 
+  head()
+```
+
+
+## Chapter 15 
+
+### Section 15.3.1 (1)
+
+1. Explore the distribution of `rincome` (reported income). What makes the default bar chart hard to understand? How could you improve the plot?
+
+> Sam's solution: 
+
+```{r}
+gss_cat %>% 
+  mutate(rincome = fct_recode(rincome,
+                              non_response = "Not applicable",
+                              non_response = "Refused",
+                              non_response = "Don't know",
+                              non_response = "No answer")) %>%
+  ggplot(aes(y = rincome)) + 
+  geom_bar() 
+```
+
+
+### Section 15.4.1 (2)
+
+2. For each factor in `gss_cat` identify whether the order of the levels is arbitrary or principled.
+
+> Sam's solution: 
+
+```{r}
+glimpse(gss_cat)
+
+# no order 
+levels(gss_cat$marital)
+# no order
+levels(gss_cat$race)
+# rincome is ordered from lardest to smallest 
+levels(gss_cat$rincome)
+# partyid is ordered by spectrum from rep - dem
+levels(gss_cat$partyid)
+# no order
+levels(gss_cat$relig)
+# no order
+levels(gss_cat$denom)
+```
+
+
+### Section 15.5.1 (2)
+
+2. How could you collapse `rincome` into a small set of categories?
+
+> Sam's solution: 
+
+```{r}
+gss_cat %>% 
+  mutate(rincome = fct_collapse(rincome, 
+    non_response = c("No answer", "Don't know", "Refused", 
+                     "Not applicable"), 
+    `under $5000` = c("Lt $1000", "$1000 to 2999", "$3000 to 3999",
+                   "$4000 to 4999"),
+    `$5000 to 9999` = c("$5000 to 5999", "$6000 to 6999",
+                     "$7000 to 7999", "$8000 to 9999")
+  )) %>% 
+  ggplot() + 
+  geom_bar(aes(y = rincome))
+
+# could also do it with case_when 
+```
+
+
+## Chapter 16 
+
+### Section 16.2.4 (2, 3)
+
+2. What does the `tzone` argument to `today()` do? Why is it important?
+
+> Sam's Solution:
+
+```{r}
+Sys.time()
+
+today()
+
+today(tzone = "America/Los_Angeles")
+
+today(tzone = "GMT")
+
+today(tzone = "Asia/Seoul")
+
+today(tzone = "Europe/Rome")
+
+# find timezones with ?OlsonNames
+```
+
+
+3. Use the appropriate `lubridate` function to parse each of the following dates:
+
+```{r}
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 2014
+```
+
+> Sam's Solution: 
+
+```{r}
+mdy(d1)
+ymd(d2)
+dmy(d3)
+mdy(d4)
+mdy(d5)
+```
+
+
+
+### Section 16.3.4 (3, 5)
+
+3. Compare `air_time` with the duration between the departure and arrival. Explain your findings. (Hint: consider the location of the airport.)
+
+> Sam's Solution: 
+
+```{r}
+# first get the flights_dt data from earlier in the chapter.
+make_datetime_100 <- function(year, month, day, time) {
+  make_datetime(year, month, day, time %/% 100, time %% 100)
+}
+
+flights_dt <- flights %>% 
+  filter(!is.na(dep_time), !is.na(arr_time)) %>% 
+  mutate(
+    dep_time = make_datetime_100(year, month, day, dep_time),
+    arr_time = make_datetime_100(year, month, day, arr_time),
+    sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),
+    sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)
+  ) %>% 
+  select(origin, dest, ends_with("delay"), ends_with("time")) 
+
+flights_dt %>% 
+  mutate(duration = as.numeric(arr_time - dep_time), 
+         difference = duration - air_time) %>% 
+  select(origin, dest, duration, air_time, difference)
+
+# different time zone in the destination means the times are messed up! 
+```
+
+
+5. On what day of the week should you leave if you want to minimise the chance of a delay?
+
+> Live solution: 
+
+```{r}
+flights_dt %>% 
+  mutate(weekday = wday(dep_time, label = TRUE, abbr = F)) %>%
+  group_by(weekday) %>% 
+  filter(!is.na(arr_delay), arr_delay > 0) %>% 
+  summarize(mean_arr_delay = mean(arr_delay), 
+            n_big_delays = sum(arr_delay > 60),
+            prop_big_delays = n_big_delays / n()) %>% 
+  arrange(mean_arr_delay)
+```
+
+
+> Sam's Solution: 
+
+```{r}
+flights_dt %>% 
+  mutate(day_of_wk = wday(sched_dep_time, 
+                          label = TRUE, abbr = FALSE)) %>% 
+  group_by(day_of_wk) %>% 
+  filter(!is.na(arr_delay)) %>% 
+  summarise(perc_delay = sum(arr_delay > 0) / n(),
+            mean_delay = mean(arr_delay))
+# Saturdays are the best days to avoid delays
+```
+
+
+### Section 16.4.5 (3, 4)
+
+3. Create a vector of dates giving the first day of every month in 2015. Create a vector of dates giving the first day of every month in the current year.
+
+> Sam's Solution: 
+
+```{r}
+nyd15 <- make_date(year = 2015, month = 1, day = 1)
+fdays15 <- nyd15 + months(0:11)
+fdays21 <- fdays15 + years(6)
+```
+
+
+4. Write a function that given your birthday (as a date), returns how old you are in years.
+
+> Sam's Solution: 
+
+```{r}
+my_age <- function(dob){
+  
+  if (!is.Date(dob)){
+    stop("dob must be a date object")
+  }
+  
+  myage <- today() - dob
+  myage <- as.duration(myage)
+  myage <- as.period(myage)
+  
+  year(myage)
+  
+}
+```
+
